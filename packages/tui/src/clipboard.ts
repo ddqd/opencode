@@ -78,7 +78,7 @@ export function copyCommand(
   wayland: boolean,
   has: (name: string) => boolean,
 ): string[] | undefined {
-  if (os === "darwin" && has("osascript")) return ["osascript"]
+  if (os === "darwin" && has("pbcopy")) return ["pbcopy"]
   if (os === "linux" && wayland && has("wl-copy")) return ["wl-copy"]
   if (os === "linux" && has("xclip")) return ["xclip", "-selection", "clipboard"]
   if (os === "linux" && has("xsel")) return ["xsel", "--clipboard", "--input"]
@@ -99,12 +99,6 @@ function getCopyMethod() {
   return (copyMethod ??= (async () => {
     const { which } = await import("@opencode-ai/core/util/which")
     const native = copyCommand(platform(), Boolean(process.env.WAYLAND_DISPLAY), (name) => Boolean(which(name)))
-    if (native?.[0] === "osascript") {
-      return async (text: string) => {
-        const escaped = text.replace(/\\/g, "\\\\").replace(/"/g, '\\"')
-        await command("osascript", ["-e", `set the clipboard to "${escaped}"`]).catch(() => undefined)
-      }
-    }
     if (native) {
       return async (text: string) => {
         await command(native[0], native.slice(1), text).catch(() => undefined)
