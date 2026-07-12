@@ -1,0 +1,4 @@
+## 2024-05-18 - [Timing Attack in Basic Auth]
+**Vulnerability:** The basic authentication password comparison used `===`, which is vulnerable to timing attacks. This allowed an attacker to determine the password one character at a time.
+**Learning:** String comparison operators (`===` or `==`) return as soon as a mismatch is found. In authentication paths, this leaks information about the stored secret.
+**Prevention:** Always use `timingSafeEqual` from `node:crypto` or a similar constant-time comparison function when verifying secrets. Remember that `timingSafeEqual` requires buffers of equal length, so a length check must be performed first. To prevent leaking the length itself, a dummy constant-time comparison (e.g., comparing the expected buffer to itself) should be executed even when lengths differ.

@@ -1,5 +1,6 @@
 export * as ServerAuth from "./auth"
 
+import { timingSafeEqual } from "node:crypto"
 import { ConfigService } from "@/effect/config-service"
 import { Flag } from "@opencode-ai/core/flag/flag"
 import { Config as EffectConfig, Context, Option, Redacted } from "effect"
@@ -26,11 +27,23 @@ export function required(config: Info) {
 }
 
 export function authorized(credentials: DecodedCredentials, config: Info) {
-  return (
-    Option.isSome(config.password) &&
-    credentials.username === config.username &&
-    Redacted.value(credentials.password) === config.password.value
-  )
+  if (!Option.isSome(config.password) || credentials.username !== config.username) {
+    return false
+  }
+
+  const providedPassword = Redacted.value(credentials.password)
+  const expectedPassword = config.password.value
+
+  const providedBuffer = Buffer.from(providedPassword, "utf-8")
+  const expectedBuffer = Buffer.from(expectedPassword, "utf-8")
+
+  if (providedBuffer.length !== expectedBuffer.length) {
+    // To avoid leaking length, we still do a comparison but always return false
+    timingSafeEqual(expectedBuffer, expectedBuffer)
+    return false
+  }
+
+  return timingSafeEqual(providedBuffer, expectedBuffer)
 }
 
 export function header(credentials?: Credentials) {
