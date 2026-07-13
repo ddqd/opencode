@@ -1,7 +1,15 @@
+import { timingSafeEqual } from "node:crypto"
 import { Message, Model, Part, Session, SnapshotFileDiff } from "@opencode-ai/sdk/v2"
 import { iife } from "@opencode-ai/core/util/iife"
 import z from "zod"
 import { Storage } from "./storage"
+
+function safeEqual(a: string, b: string): boolean {
+  const encoder = new TextEncoder()
+  const aBytes = encoder.encode(a)
+  const bBytes = encoder.encode(b)
+  return aBytes.length === bBytes.length && timingSafeEqual(aBytes, bBytes)
+}
 
 function fn<T extends z.ZodType, Result>(schema: T, cb: (input: z.infer<T>) => Result) {
   return (input: z.infer<T>) => cb(schema.parse(input))
@@ -134,7 +142,7 @@ export namespace Share {
   export const remove = fn(Info.pick({ id: true, secret: true }), async (body) => {
     const share = await get(body.id)
     if (!share) throw new Errors.NotFound(body.id)
-    if (share.secret !== body.secret) throw new Errors.InvalidSecret(body.id)
+    if (!safeEqual(share.secret, body.secret)) throw new Errors.InvalidSecret(body.id)
     await Storage.remove(["share", body.id])
     const groups = await Promise.all([
       Storage.list({ prefix: ["share_snapshot", body.id] }),
@@ -161,7 +169,7 @@ export namespace Share {
     async (input) => {
       const share = await get(input.share.id)
       if (!share) throw new Errors.NotFound(input.share.id)
-      if (share.secret !== input.share.secret) throw new Errors.InvalidSecret(input.share.id)
+      if (!safeEqual(share.secret, input.share.secret)) throw new Errors.InvalidSecret(input.share.id)
       const data = (await readSnapshot(input.share.id)) ?? (await legacy(input.share.id))
       await writeSnapshot(input.share.id, merge(data, input.data))
     },
@@ -179,7 +187,7 @@ export namespace Share {
     async (input) => {
       const share = await get(input.share.id)
       if (!share) throw new Errors.NotFound(input.share.id)
-      if (share.secret !== input.share.secret) throw new Errors.InvalidSecret(input.share.id)
+      if (!safeEqual(share.secret, input.share.secret)) throw new Errors.InvalidSecret(input.share.id)
       const promises = []
       for (const item of input.data) {
         promises.push(
