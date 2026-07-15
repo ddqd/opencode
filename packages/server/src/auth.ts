@@ -1,6 +1,7 @@
 export * as ServerAuth from "./auth"
 
 import { Config as EffectConfig, Context, Effect, Layer, Option, Redacted } from "effect"
+import { timingSafeEqual } from "node:crypto"
 
 export type Credentials = {
   password?: string
@@ -42,11 +43,15 @@ export function required(config: Info) {
 }
 
 export function authorized(credentials: DecodedCredentials, config: Info) {
-  return (
-    Option.isSome(config.password) &&
-    credentials.username === config.username &&
-    Redacted.value(credentials.password) === config.password.value
-  )
+  if (
+    Option.isNone(config.password) ||
+    credentials.username !== config.username
+  ) {
+    return false
+  }
+  const provided = Buffer.from(Redacted.value(credentials.password), "utf8")
+  const expected = Buffer.from(config.password.value, "utf8")
+  return provided.length === expected.length && timingSafeEqual(provided, expected)
 }
 
 export function header(credentials?: Credentials) {
