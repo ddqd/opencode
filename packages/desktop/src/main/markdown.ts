@@ -1,4 +1,5 @@
 import { marked, type Tokens } from "marked"
+import DOMPurify from "isomorphic-dompurify"
 
 const renderer = new marked.Renderer()
 
@@ -8,9 +9,10 @@ renderer.link = ({ href, title, text }: Tokens.Link) => {
 }
 
 export function parseMarkdown(input: string) {
-  return marked(input, {
+  const parsed = marked(input, {
     renderer,
     breaks: false,
     gfm: true,
   })
+  return DOMPurify.sanitize(parsed as string)
 }
