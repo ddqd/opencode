@@ -1,4 +1,5 @@
 import { marked } from "marked"
+import DOMPurify from "isomorphic-dompurify"
 import { codeToHtml } from "shiki"
 import markedShiki from "marked-shiki"
 import { createOverflow, useShareMessages } from "./common"
@@ -37,7 +38,8 @@ export function ContentMarkdown(props: Props) {
   const [html] = createResource(
     () => strip(props.text),
     async (markdown) => {
-      return markedWithShiki.parse(markdown)
+      const parsed = await markedWithShiki.parse(markdown)
+      return DOMPurify.sanitize(parsed)
     },
   )
   const [expanded, setExpanded] = createSignal(false)
