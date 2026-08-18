@@ -1,0 +1,4 @@
+## 2025-03-08 - [XSS vulnerability in Markdown rendering via SolidJS SSR]
+**Vulnerability:** The web app used marked to parse markdown to HTML, and then directly rendered it to the DOM using SolidJS innerHTML directive (`innerHTML={html()}`) in `packages/web/src/components/share/content-markdown.tsx`. This exposed the app to XSS vulnerabilities.
+**Learning:** SSR frameworks like Astro/SolidJS still require manual sanitization of parsed user input when injecting HTML directly (e.g. via `innerHTML`).
+**Prevention:** Always sanitize HTML (using `isomorphic-dompurify` for SSR compatibility) when rendering raw HTML from parsed Markdown.
