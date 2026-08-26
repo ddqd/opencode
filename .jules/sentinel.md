@@ -1,0 +1,4 @@
+## 2025-02-14 - XSS via Markdown Rendering
+**Vulnerability:** XSS risk due to rendering markdown directly into HTML via `marked.parse` without sanitization. Although `shiki` handles syntax highlighting safely by escaping HTML strings during tokenization, arbitrary HTML injected into the Markdown content would execute when using `innerHTML`.
+**Learning:** We need to explicitly sanitize the HTML output produced by `marked.parse()`. However, we cannot safely sanitize the HTML output of `shiki`'s `codeToHtml` using `isomorphic-dompurify` directly without stripping out Shiki's custom inline CSS variables (`--shiki-light:...`) required for syntax highlighting.
+**Prevention:** Apply `isomorphic-dompurify` selectively: use it on `marked`'s HTML output where XSS vulnerabilities are viable, but avoid sanitizing `shiki`'s standalone outputs which are already safe.
