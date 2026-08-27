@@ -23,6 +23,7 @@
     "ai": "catalog:",
     "astro": "5.7.13",
     "diff": "catalog:",
+    "isomorphic-dompurify": "3.23.0",
     "js-base64": "3.7.7",
     "lang-map": "0.4.0",
     "luxon": "catalog:",
@@ -36,9 +37,9 @@
     "vscode-languageserver-types": "3.17.5"
   },
   "devDependencies": {
-    "opencode": "workspace:*",
-    "@types/node": "catalog:",
     "@astrojs/check": "0.9.6",
+    "@types/node": "catalog:",
+    "opencode": "workspace:*",
     "typescript": "catalog:"
   }
 }
