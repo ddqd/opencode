@@ -1,6 +1,7 @@
 import { marked } from "marked"
 import { codeToHtml } from "shiki"
 import markedShiki from "marked-shiki"
+import DOMPurify from "isomorphic-dompurify"
 import { createOverflow, useShareMessages } from "./common"
 import { CopyButton } from "./copy-button"
 import { createResource, createSignal } from "solid-js"
@@ -37,7 +38,10 @@ export function ContentMarkdown(props: Props) {
   const [html] = createResource(
     () => strip(props.text),
     async (markdown) => {
-      return markedWithShiki.parse(markdown)
+      const parsed = await markedWithShiki.parse(markdown)
+      // Prevent Cross-Site Scripting (XSS) vulnerabilities when rendering markdown.
+      // ADD_ATTR target is required so our custom link renderer can open links in a new tab.
+      return DOMPurify.sanitize(parsed, { ADD_ATTR: ["target"] })
     },
   )
   const [expanded, setExpanded] = createSignal(false)
