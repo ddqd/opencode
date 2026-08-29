@@ -1,0 +1,4 @@
+## 2024-05-18 - Prevent XSS in Markdown Rendering with SolidJS/Astro
+**Vulnerability:** XSS vulnerability due to injecting raw HTML from `marked` parsing directly into the DOM via `innerHTML` without sanitization in `packages/web/src/components/share/content-markdown.tsx`.
+**Learning:** Even though Shiki's syntax highlighting escapes HTML, any raw HTML tags inside the markdown are still processed by `marked` and injected into the DOM verbatim if no DOM Sanitizer is used. This can allow attackers to inject `<script>` tags or malicious event handlers in elements like `<img>` or `<a>`. Also, when using `DOMPurify`, ensure to include `ADD_ATTR: ["target"]` in the config when sanitizing links to retain the `target="_blank"` attribute.
+**Prevention:** Always use `isomorphic-dompurify` (for SSR compatibility) or `dompurify` to sanitize HTML generated from `marked` or any other Markdown parser before rendering it into the DOM using `innerHTML`.
